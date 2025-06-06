@@ -4,14 +4,424 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Periodic Table Quiz</title>
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Flag Icons CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/flag-icons@latest/css/flag-icons.min.css" rel="stylesheet">
+    <style>
+        /* Genel Stil */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 10px; /* Genel padding azaltıldı */
+            background-color: #ffffff; /* Gri arka plan kaldırıldı, beyaz yapıldı */
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh; /* Ekran yüksekliğini en az %100 yap */
+            box-sizing: border-box; /* Padding dahil toplam boyutu hesapla */
+        }
+
+        /* Başlık Stil */
+        header {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px; /* Margin azaltıldı */
+            padding: 10px 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            color: #0056b3;
+            font-size: 1.8em; /* Başlık font boyutu ayarlandı */
+        }
+
+        /* Dil Seçici Konteyneri */
+        .language-selector {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Ana Dil Butonu */
+        .language-selector .main-lang-button {
+            padding: 5px 9px; /* Padding azaltıldı */
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            background-color: #007bff; /* Aktif renk */
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.8em; /* Yazı daha küçük */
+            display: flex;
+            align-items: center;
+            gap: 4px; /* Metin ve bayrak arası boşluk azaltıldı */
+            transition: background-color 0.3s, color 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .language-selector .main-lang-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Açılır Dil Seçenekleri Konteyneri */
+        .language-options {
+            display: none; /* Varsayılan olarak gizli */
+            position: absolute;
+            background-color: #fff;
+            min-width: 110px; /* Genişlik azaltıldı */
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            margin-top: 5px;
+            right: 0; /* Sağa hizala */
+            overflow: hidden; /* Açılış kapanış animasyonu için */
+            transition: max-height 0.3s ease-out; /* Açılış animasyonu */
+            max-height: 0;
+        }
+
+        .language-options.show {
+            display: block; /* Görünür yap */
+            max-height: 200px; /* Yaklaşık bir yükseklik, içerik kadar genişler */
+        }
+
+        .language-options button {
+            color: #007bff;
+            padding: 7px 9px; /* Padding azaltıldı */
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px; /* Metin ve bayrak arası boşluk azaltıldı */
+            width: 100%;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.85em; /* Yazı daha küçük */
+            transition: background-color 0.2s;
+            border-radius: 0; /* İç butonlarda köşe olmasın */
+        }
+
+        .language-options button:hover {
+            background-color: #f1f1f1;
+        }
+
+        .language-options button.active-option {
+            background-color: #e6f2ff;
+            font-weight: bold;
+        }
+
+        /* Flag Icons Styling */
+        .flag-icon {
+            width: 1.1em; /* Bayrak boyutu azaltıldı */
+            height: 1.1em; /* Bayrak boyutu azaltıldı */
+            line-height: 1;
+            vertical-align: middle;
+            border-radius: 2px;
+            box-shadow: 0 0 1px rgba(0,0,0,0.2);
+        }
+
+        /* Ana İçerik Alanı */
+        main {
+            width: 100%;
+            max-width: 1200px;
+            background-color: #fff;
+            padding: 15px; /* Padding azaltıldı */
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1; /* Mevcut alanı doldurmasını sağla */
+        }
+
+        /* Periyodik Tablo Izgarası */
+        #periodic-table-grid {
+            display: grid;
+            grid-template-columns: repeat(18, 1fr);
+            gap: 1px; /* Gap azaltıldı */
+            margin-top: 15px; /* Margin azaltıldı */
+            border: 1px solid #ccc;
+            padding: 3px; /* Padding azaltıldı */
+            background-color: #eee;
+            justify-content: center;
+            align-content: center;
+            flex-grow: 1; /* Dikeyde büyümeyi sağla */
+        }
+
+        /* Bireysel Element Hücresi */
+        .element-cell {
+            border: 1px solid #bbb;
+            padding: 1px; /* Padding daha da azaltıldı */
+            text-align: center;
+            font-size: 0.65em; /* Element numarası/adı için font boyutu azaltıldı */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+            position: relative;
+            border-radius: 2px; /* Köşe yuvarlaklığı azaltıldı */
+            aspect-ratio: 1 / 1; /* Kutucukların kare kalmasını sağla */
+            width: 100%; /* İçinde bulunduğu grid hücresine göre genişle */
+            overflow: hidden; /* İçeriğin taşmasını engelle */
+        }
+
+        .element-cell.empty {
+            background-color: transparent;
+            border: none;
+        }
+
+        /* Element Numarası */
+        .element-number {
+            position: absolute;
+            top: 1px; /* Konum ayarlandı */
+            left: 2px; /* Konum ayarlandı */
+            font-size: 0.55em; /* Numaralar daha da küçük */
+            color: #666;
+        }
+
+        /* Doğru bilindiğinde element içeriği */
+        .correctly-guessed-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%; /* Tam hücreyi kapla */
+            width: 100%; /* Tam hücreyi kapla */
+            padding-top: 8px; /* Numara için üstten boşluk */
+        }
+
+        .guessed-symbol {
+            font-weight: bold; /* Kalın punto */
+            font-size: 1.1em; /* Sembol boyutu biraz azaltıldı */
+            color: #000; /* Siyah renk */
+            line-height: 1; /* Sembol satır yüksekliği */
+        }
+
+        .guessed-name {
+            font-size: 0.6em; /* Tam ad boyutu azaltıldı */
+            color: #000; /* Siyah renk */
+            margin-top: 1px; /* Sembol ve ad arası boşluk azaltıldı */
+            line-height: 1; /* Satır yüksekliğini ayarla */
+            word-break: break-all; /* Uzun isimleri kes */
+            padding: 0 1px; /* Kenarlara hafif boşluk */
+        }
+
+
+        /* Quiz Kontrolleri */
+        .quiz-controls {
+            margin-top: 20px; /* Margin azaltıldı */
+            padding-top: 15px; /* Padding azaltıldı */
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+
+        #element-input {
+            padding: 8px; /* Padding azaltıldı */
+            width: 200px; /* Genişlik azaltıldı */
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9em; /* Font boyutu azaltıldı */
+            margin-right: 8px; /* Margin azaltıldı */
+        }
+
+        #submit-answer, #reset-quiz {
+            padding: 8px 15px; /* Padding azaltıldı */
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em; /* Font boyutu azaltıldı */
+            transition: background-color 0.3s;
+            margin-top: 8px; /* Margin azaltıldı */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        #submit-answer:hover, #reset-quiz:hover {
+            background-color: #0056b3;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        #feedback {
+            margin-top: 10px; /* Margin azaltıldı */
+            font-weight: bold;
+            color: #dc3545;
+            font-size: 0.9em; /* Font boyutu azaltıldı */
+        }
+
+        #feedback.success {
+            color: #28a745;
+        }
+
+        #reset-quiz {
+            background-color: #6c757d;
+            margin-left: 8px; /* Margin azaltıldı */
+        }
+
+        #reset-quiz:hover {
+            background-color: #5a6268;
+        }
+
+        /* Element Hücreleri için Kategori Renkleri (Güncellendi) */
+        .category-alkali-metal { background-color: #FF6347; } /* Tomato */
+        .category-alkaline-earth-metal { background-color: #FFA07A; } /* Light Salmon */
+        .category-transition-metal { background-color: #FFD700; } /* Gold */
+        .category-post-transition-metal { background-color: #90EE90; } /* Light Green */
+        .category-metalloid { background-color: #6495ED; } /* Cornflower Blue */
+        .category-nonmetal { background-color: #9932CC; } /* Dark Orchid */
+        .category-noble-gas { background-color: #BA55D3; } /* Medium Orchid */
+        .category-lanthanide { background-color: #ADD8E6; } /* Light Blue */
+        .category-actinide { background-color: #DA70D6; } /* Orchid */
+
+        /* Lantanit/Aktinit yer tutucu hücreleri için düzenlemeler */
+        /* Bu sınıfın sadece yapısal olduğunu, arka plan rengi vermediğini varsayıyoruz,
+           çünkü rengi kategori sınıfı belirleyecek. */
+        .lanthanide-actinide-placeholder-cell {
+            /* background-color: #f9f9f9; Bu kaldırıldı */
+        }
+
+        /* Kategori Açıklaması Stili */
+        #category-legend {
+            margin: 20px auto 0 auto; /* Otomatik margin ile ortalandı */
+            padding: 15px; /* Padding azaltıldı */
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: fit-content;
+            max-width: 1200px;
+            box-sizing: border-box;
+        }
+
+        #category-legend h3 {
+            margin-top: 0;
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 10px; /* Margin azaltıldı */
+            font-size: 1.2em; /* Font boyutu azaltıldı */
+        }
+
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px; /* Gap azaltıldı */
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px; /* Gap azaltıldı */
+            font-size: 0.8em; /* Font boyutu azaltıldı */
+            white-space: nowrap;
+        }
+
+        .legend-color-box {
+            width: 18px; /* Boyut azaltıldı */
+            height: 18px; /* Boyut azaltıldı */
+            border-radius: 3px; /* Köşe yuvarlaklığı azaltıldı */
+            border: 1px solid #ccc;
+        }
+
+        /* Açıklama için Duyarlı Ayarlamalar */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            header {
+                padding: 8px 15px;
+                margin-bottom: 10px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            main {
+                padding: 10px;
+            }
+            #periodic-table-grid {
+                margin-top: 10px;
+            }
+            .element-cell {
+                font-size: 0.6em; /* Daha küçük ekranlarda daha da küçült */
+                padding: 0;
+            }
+            .element-number {
+                font-size: 0.5em;
+            }
+            .guessed-symbol {
+                font-size: 1em;
+            }
+            .guessed-name {
+                font-size: 0.55em;
+            }
+            .quiz-controls {
+                margin-top: 15px;
+                padding-top: 10px;
+            }
+            #element-input {
+                width: 180px;
+                font-size: 0.85em;
+                margin-right: 5px;
+            }
+            #submit-answer, #reset-quiz {
+                padding: 7px 12px;
+                font-size: 0.85em;
+                margin-top: 5px;
+            }
+            #feedback {
+                font-size: 0.8em;
+            }
+            #category-legend {
+                padding: 10px;
+                margin-top: 15px;
+            }
+            #category-legend h3 {
+                font-size: 1.1em;
+            }
+            .legend-item {
+                font-size: 0.75em;
+                gap: 3px;
+            }
+            .legend-color-box {
+                width: 16px;
+                height: 16px;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
         <h1>Periodic Table Quiz</h1>
         <div class="language-selector">
-            <button id="lang-en" class="active">EN</button>
-            <button id="lang-tr">TR</button>
+            <button id="main-lang-toggle" class="main-lang-button">
+                <span id="current-lang-text">EN</span>
+                <span id="current-lang-flag" class="fi fi-us flag-icon"></span>
+            </button>
+            <div id="language-options" class="language-options">
+                <button data-lang="en">
+                    <span class="lang-text">EN</span>
+                    <span class="fi fi-us flag-icon"></span>
+                </button>
+                <button data-lang="tr">
+                    <span class="lang-text">TR</span>
+                    <span class="fi fi-tr flag-icon"></span>
+                </button>
+                <button data-lang="es">
+                    <span class="lang-text">ES</span>
+                    <span class="fi fi-es flag-icon"></span>
+                </button>
+                <button data-lang="de">
+                    <span class="lang-text">DE</span>
+                    <span class="fi fi-de flag-icon"></span>
+                </button>
+                <button data-lang="ar">
+                    <span class="lang-text">AR</span>
+                    <span class="fi fi-sa flag-icon"></span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -19,16 +429,675 @@
         <section id="periodic-table-section">
             <h2>Periodic Table</h2>
             <div id="periodic-table-grid">
-                </div>
+                <!-- Periyodik tablo elementleri JavaScript tarafından burada oluşturulacak -->
+            </div>
             <div class="quiz-controls">
-                <input type="text" id="element-input" placeholder="Enter element name (e.g., Hydrogen)">
-                <button id="submit-answer">Submit</button>
+                <input type="text" id="element-input" placeholder="Element adı girin">
+                <button id="submit-answer">Gönder</button>
                 <div id="feedback"></div>
-                <button id="reset-quiz">Reset Quiz</button>
+                <button id="reset-quiz">Quizi Sıfırla</button>
             </div>
         </section>
+
+        <div id="category-legend">
+            <h3>Kategori Açıklaması</h3>
+            <div class="legend-items">
+                <!-- Açıklama öğeleri JS tarafından doldurulacak -->
+            </div>
+        </div>
     </main>
 
-    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const periodicTableGrid = document.getElementById('periodic-table-grid');
+            const mainLangToggle = document.getElementById('main-lang-toggle');
+            const languageOptionsDiv = document.getElementById('language-options');
+            const currentLangText = document.getElementById('current-lang-text');
+            const currentLangFlag = document.getElementById('current-lang-flag');
+            const elementInput = document.getElementById('element-input');
+            const submitAnswerBtn = document.getElementById('submit-answer');
+            const feedbackDiv = document.getElementById('feedback');
+            const resetQuizBtn = document.getElementById('reset-quiz');
+            const categoryLegend = document.getElementById('category-legend');
+            const legendItemsContainer = categoryLegend.querySelector('.legend-items');
+
+            // Element verileri: Atom Numarası, Sembol, İngilizce Adı, Türkçe Adı, İspanyolca Adı, Almanca Adı, Arapça Adı, Grup, Periyot, Kategori, Atom Ağırlığı, Elektron Dizilimi
+            const elements = [
+                [1, "H", "Hydrogen", "Hidrojen", "Hidrógeno", "Wasserstoff", "هيدروجين", 1, 1, "nonmetal", 1.008, "1s¹"],
+                [2, "He", "Helium", "Helyum", "Helio", "Helium", "هيليوم", 18, 1, "noble-gas", 4.0026, "1s²"],
+                [3, "Li", "Lithium", "Lityum", "Litio", "Lithium", "ليثيوم", 1, 2, "alkali-metal", 6.94, "[He] 2s¹"],
+                [4, "Be", "Beryllium", "Berilyum", "Berilio", "Beryllium", "بيريليوم", 2, 2, "alkaline-earth-metal", 9.0122, "[He] 2s²"],
+                [5, "B", "Boron", "Bor", "Boro", "Bor", "بورون", 13, 2, "metalloid", 10.81, "[He] 2s² 2p¹"],
+                [6, "C", "Carbon", "Karbon", "Carbono", "Kohlenstoff", "كربون", 14, 2, "nonmetal", 12.011, "[He] 2s² 2p²"],
+                [7, "N", "Nitrogen", "Azot", "Nitrógeno", "Stickstoff", "نيتروجين", 15, 2, "nonmetal", 14.007, "[He] 2s² 2p³"],
+                [8, "O", "Oxygen", "Oksijen", "Oxígeno", "Sauerstoff", "أكسجين", 16, 2, "nonmetal", 15.999, "[He] 2s² 2p⁴"],
+                [9, "F", "Fluorine", "Flor", "Flúor", "Fluor", "فلور", 17, 2, "nonmetal", 18.998, "[He] 2s² 2p⁵"],
+                [10, "Ne", "Neon", "Neon", "Neón", "Neon", "نيون", 18, 2, "noble-gas", 20.180, "[He] 2s² 2p⁶"],
+                [11, "Na", "Sodium", "Sodyum", "Sodio", "Natrium", "صوديوم", 1, 3, "alkali-metal", 22.990, "[Ne] 3s¹"],
+                [12, "Mg", "Magnesium", "Magnezyum", "Magnesio", "Magnesium", "مغنيسيوم", 2, 3, "alkaline-earth-metal", 24.305, "[Ne] 3s²"],
+                [13, "Al", "Aluminum", "Alüminyum", "Aluminio", "Aluminium", "ألومنيوم", 13, 3, "post-transition-metal", 26.982, "[Ne] 3s² 3p¹"],
+                [14, "Si", "Silicon", "Silisyum", "Silicio", "Silizium", "سيليكون", 14, 3, "metalloid", 28.085, "[Ne] 3s² 3p²"],
+                [15, "P", "Phosphorus", "Fosfor", "Fósforo", "Phosphor", "فوسفور", 15, 3, "nonmetal", 30.974, "[Ne] 3s² 3p³"],
+                [16, "S", "Sulfur", "Kükürt", "Azufre", "Schwefel", "كبريت", 16, 3, "nonmetal", 32.06, "[Ne] 3s² 3p⁴"],
+                [17, "Cl", "Chlorine", "Klor", "Cloro", "Chlor", "كلور", 17, 3, "nonmetal", 35.45, "[Ne] 3s² 3p⁵"],
+                [18, "Ar", "Argon", "Argon", "Argón", "Argon", "أرجون", 18, 3, "noble-gas", 39.948, "[Ne] 3s² 3p⁶"],
+                [19, "K", "Potassium", "Potasyum", "Potasio", "Kalium", "بوتاسيوم", 1, 4, "alkali-metal", 39.098, "[Ar] 4s¹"],
+                [20, "Ca", "Calcium", "Kalsiyum", "Calcio", "Calcium", "كالسيوم", 2, 4, "alkaline-earth-metal", 40.078, "[Ar] 4s²"],
+                [21, "Sc", "Scandium", "Skandiyum", "Escandio", "Scandium", "سكانديوم", 3, 4, "transition-metal", 44.956, "[Ar] 3d¹ 4s²"],
+                [22, "Ti", "Titanium", "Titanyum", "Titanio", "Titan", "تيتانيوم", 4, 4, "transition-metal", 47.867, "[Ar] 3d² 4s²"],
+                [23, "V", "Vanadium", "Vanadyum", "Vanadio", "Vanadium", "فاناديوم", 5, 4, "transition-metal", 50.942, "[Ar] 3d³ 4s²"],
+                [24, "Cr", "Chromium", "Krom", "Cromo", "Chrom", "كروم", 6, 4, "transition-metal", 51.996, "[Ar] 3d⁵ 4s¹"],
+                [25, "Mn", "Manganese", "Mangan", "Manganeso", "Mangan", "منغنيز", 7, 4, "transition-metal", 54.938, "[Ar] 3d⁵ 4s²"],
+                [26, "Fe", "Iron", "Demir", "Hierro", "Eisen", "حديد", 8, 4, "transition-metal", 55.845, "[Ar] 3d⁶ 4s²"],
+                [27, "Co", "Cobalt", "Kobalt", "Cobalto", "Kobalt", "كوبالت", 9, 4, "transition-metal", 58.933, "[Ar] 3d⁷ 4s²"],
+                [28, "Ni", "Nickel", "Nikel", "Níquel", "Nickel", "نيكل", 10, 4, "transition-metal", 58.693, "[Ar] 3d⁸ 4s²"],
+                [29, "Cu", "Copper", "Bakır", "Cobre", "Kupfer", "نحاس", 11, 4, "transition-metal", 63.546, "[Ar] 3d¹⁰ 4s¹"],
+                [30, "Zn", "Zinc", "Çinko", "Zinc", "Zink", "زنك", 12, 4, "transition-metal", 65.38, "[Ar] 3d¹⁰ 4s²"],
+                [31, "Ga", "Gallium", "Galyum", "Galio", "Gallium", "غاليوم", 13, 4, "post-transition-metal", 69.723, "[Ar] 3d¹⁰ 4s² 4p¹"],
+                [32, "Ge", "Germanium", "Germanyum", "Germanio", "Germanium", "جرمانيوم", 14, 4, "metalloid", 72.63, "[Ar] 3d¹⁰ 4s² 4p²"],
+                [33, "As", "Arsenic", "Arsenik", "Arsénico", "Arsen", "زرنيخ", 15, 4, "metalloid", 74.922, "[Ar] 3d¹⁰ 4s² 4p³"],
+                [34, "Se", "Selenium", "Selenyum", "Selenio", "Selen", "سيلينيوم", 16, 4, "nonmetal", 78.971, "[Ar] 3d¹⁰ 4s² 4p⁴"],
+                [35, "Br", "Bromine", "Brom", "Bromo", "Brom", "بروم", 17, 4, "nonmetal", 79.904, "[Ar] 3d¹⁰ 4s² 4p⁵"],
+                [36, "Kr", "Krypton", "Kripton", "Criptón", "Krypton", "كريبتون", 18, 4, "noble-gas", 83.798, "[Ar] 3d¹⁰ 4s² 4p⁶"],
+                [37, "Rb", "Rubidium", "Rubidyum", "Rubidio", "Rubidium", "روبيديوم", 1, 5, "alkali-metal", 85.468, "[Kr] 5s¹"],
+                [38, "Sr", "Strontium", "Stronsiyum", "Estroncio", "Strontium", "سترونشيوم", 2, 5, "alkaline-earth-metal", 87.62, "[Kr] 5s²"],
+                [39, "Y", "Yttrium", "İtriyum", "Itrio", "Yttrium", "إيتريوم", 3, 5, "transition-metal", 88.906, "[Kr] 4d¹ 5s²"],
+                [40, "Zr", "Zirconium", "Zirkonyum", "Circonio", "Zirconium", "زركونيوم", 4, 5, "transition-metal", 91.224, "[Kr] 4d² 5s²"],
+                [41, "Nb", "Niobium", "Niyobyum", "Niobio", "Niob", "نيوبيوم", 5, 5, "transition-metal", 92.906, "[Kr] 4d⁴ 5s¹"],
+                [42, "Mo", "Molybdenum", "Molibden", "Molibdeno", "Molybdän", "موليبدنوم", 6, 5, "transition-metal", 95.95, "[Kr] 4d⁵ 5s¹"],
+                [43, "Tc", "Technetium", "Teknesyum", "Tecnecio", "Technetium", "تكنيتيوم", 7, 5, "transition-metal", 98, "[Kr] 4d⁵ 5s²"],
+                [44, "Ru", "Ruthenium", "Rutenyum", "Rutenio", "Ruthenium", "روثينيوم", 8, 5, "transition-metal", 101.07, "[Kr] 4d⁷ 5s¹"],
+                [45, "Rh", "Rhodium", "Rodyum", "Rodio", "Rhodium", "روديوم", 9, 5, "transition-metal", 102.91, "[Kr] 4d⁸ 5s¹"],
+                [46, "Pd", "Palladium", "Paladyum", "Paladio", "Palladium", "بالاديوم", 10, 5, "transition-metal", 106.42, "[Kr] 4d¹⁰"],
+                [47, "Ag", "Silver", "Gümüş", "Plata", "Silber", "فضة", 11, 5, "transition-metal", 107.87, "[Kr] 4d¹⁰ 5s¹"],
+                [48, "Cd", "Cadmium", "Kadmiyum", "Cadmio", "Cadmium", "كادميوم", 12, 5, "transition-metal", 112.41, "[Kr] 4d¹⁰ 5s²"],
+                [49, "In", "Indium", "İndiyum", "Indio", "Indium", "إنديوم", 13, 5, "post-transition-metal", 114.82, "[Kr] 4d¹⁰ 5s² 5p¹"],
+                [50, "Sn", "Tin", "Kalay", "Estaño", "Zinn", "قصدير", 14, 5, "post-transition-metal", 118.71, "[Kr] 4d¹⁰ 5s² 5p²"],
+                [51, "Sb", "Antimony", "Antimon", "Antimonio", "Antimon", "أنتيمون", 15, 5, "metalloid", 121.76, "[Kr] 4d¹⁰ 5s² 5p³"],
+                [52, "Te", "Tellurium", "Tellür", "Telurio", "Tellur", "تيلوريوم", 16, 5, "metalloid", 127.60, "[Kr] 4d¹⁰ 5s² 5p⁴"],
+                [53, "I", "Iodine", "İyot", "Yodo", "Iod", "يود", 17, 5, "nonmetal", 126.90, "[Kr] 4d¹⁰ 5s² 5p⁵"],
+                [54, "Xe", "Xenon", "Ksenon", "Xenón", "Xenon", "زينون", 18, 5, "noble-gas", 131.29, "[Kr] 4d¹⁰ 5s² 5p⁶"],
+                [55, "Cs", "Cesium", "Sezyum", "Cesio", "Caesium", "سيزيوم", 1, 6, "alkali-metal", 132.91, "[Xe] 6s¹"],
+                [56, "Ba", "Barium", "Baryum", "Bario", "Barium", "باريوم", 2, 6, "alkaline-earth-metal", 137.33, "[Xe] 6s²"],
+                // Lantanitler (57-71)
+                [57, "La", "Lanthanum", "Lantan", "Lantano", "Lanthan", "لانثانوم", 3, 6, "lanthanide", 138.91, "[Xe] 5d¹ 6s²"],
+                [58, "Ce", "Cerium", "Seryum", "Cerio", "Cer", "سيريوم", 3, 8, "lanthanide", 140.12, "[Xe] 4f¹ 5d¹ 6s²"],
+                [59, "Pr", "Praseodymium", "Praseodim", "Praseodimio", "Praseodym", "براسئوديميوم", 4, 8, "lanthanide", 140.91, "[Xe] 4f³ 6s²"],
+                [60, "Nd", "Neodymium", "Neodim", "Neodimio", "Neodym", "نيوديميوم", 5, 8, "lanthanide", 144.24, "[Xe] 4f⁴ 6s²"],
+                [61, "Pm", "Promethium", "Prometyum", "Prometio", "Promethium", "بروميثيوم", 6, 8, "lanthanide", 145, "[Xe] 4f⁵ 6s²"],
+                [62, "Sm", "Samarium", "Samaryum", "Samario", "Samarium", "ساماريوم", 7, 8, "lanthanide", 150.36, "[Xe] 4f⁶ 6s²"],
+                [63, "Eu", "EuroPium", "Evropiyum", "Europio", "Europium", "يوروبيوم", 8, 8, "lanthanide", 151.96, "[Xe] 4f⁷ 6s²"],
+                [64, "Gd", "Gadolinium", "Gadolinyum", "Gadolinio", "Gadolinium", "غادولينيوم", 9, 8, "lanthanide", 157.25, "[Xe] 4f⁷ 5d¹ 6s²"],
+                [65, "Tb", "Terbium", "Terbiyum", "Terbio", "Terbium", "تيربيوم", 10, 8, "lanthanide", 158.93, "[Xe] 4f⁹ 6s²"],
+                [66, "Dy", "Dysprosium", "Disprosyum", "Disprosio", "Dysprosium", "ديسبروسيوم", 11, 8, "lanthanide", 162.50, "[Xe] 4f¹⁰ 6s²"],
+                [67, "Ho", "Holmium", "Holmiyum", "Holmio", "Holmium", "هولميوم", 12, 8, "lanthanide", 164.93, "[Xe] 4f¹¹ 6s²"],
+                [68, "Er", "Erbium", "Erbiyum", "Erbio", "Erbium", "إربيوم", 13, 8, "lanthanide", 167.26, "[Xe] 4f¹² 6s²"],
+                [69, "Tm", "Thulium", "Tulyum", "Tulio", "Thulium", "ثوليوم", 14, 8, "lanthanide", 168.93, "[Xe] 4f¹³ 6s²"],
+                [70, "Yb", "Ytterbium", "İterbiyum", "Iterbio", "Ytterbium", "إتربيوم", 15, 8, "lanthanide", 173.05, "[Xe] 4f¹⁴ 6s²"],
+                [71, "Lu", "Lutetium", "Lutesyum", "Lutecio", "Lutetium", "لوتيتيوم", 16, 8, "lanthanide", 174.97, "[Xe] 4f¹⁴ 5d¹ 6s²"],
+
+                [72, "Hf", "Hafnium", "Hafniyum", "Hafnio", "Hafnium", "هافنيوم", 4, 6, "transition-metal", 178.49, "[Xe] 4f¹⁴ 5d² 6s²"],
+                [73, "Ta", "Tantalum", "Tantal", "Tántalo", "Tantal", "تانتالوم", 5, 6, "transition-metal", 180.95, "[Xe] 4f¹⁴ 5d³ 6s²"],
+                [74, "W", "Tungsten", "Tungsten", "Wolframio", "Wolfram", "تنجستن", 6, 6, "transition-metal", 183.84, "[Xe] 4f¹⁴ 5d⁴ 6s²"],
+                [75, "Re", "Rhenium", "Reniyum", "Renio", "Rhenium", "رينيوم", 7, 6, "transition-metal", 186.21, "[Xe] 4f¹⁴ 5d⁵ 6s²"],
+                [76, "Os", "Osmium", "Osmiyum", "Osmio", "Osmium", "أوزميوم", 8, 6, "transition-metal", 190.23, "[Xe] 4f¹⁴ 5d⁶ 6s²"],
+                [77, "Ir", "Iridium", "İridyum", "Iridio", "Iridium", "إيريديوم", 9, 6, "transition-metal", 192.22, "[Xe] 4f¹⁴ 5d⁷ 6s²"],
+                [78, "Pt", "Platinum", "Platin", "Platino", "Platin", "بلاتين", 10, 6, "transition-metal", 195.08, "[Xe] 4f¹⁴ 5d⁹ 6s¹"],
+                [79, "Au", "Gold", "Altın", "Oro", "Gold", "ذهب", 11, 6, "transition-metal", 196.97, "[Xe] 4f¹⁴ 5d¹⁰ 6s¹"],
+                [80, "Hg", "Mercury", "Civa", "Mercurio", "Quecksilber", "زئبق", 12, 6, "transition-metal", 200.59, "[Xe] 4f¹⁴ 5d¹⁰ 6s²"],
+                [81, "Tl", "Thallium", "Talyum", "Talio", "Thallium", "ثاليوم", 13, 6, "post-transition-metal", 204.38, "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p¹"],
+                [82, "Pb", "Lead", "Kurşun", "Plomo", "Blei", "رصاص", 14, 6, "post-transition-metal", 207.2, "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p²"],
+                [83, "Bi", "Bismuth", "Bizmut", "Bismuto", "Bismut", "بزموث", 15, 6, "post-transition-metal", 208.98, "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p³"],
+                [84, "Po", "Polonium", "Polonyum", "Polonio", "Polonium", "بولونيوم", 16, 6, "post-transition-metal", 209, "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁴"],
+                [85, "At", "Astatine", "Astatin", "Ástato", "Astat", "أستاتين", 17, 6, "nonmetal", 210, "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁵"],
+                [86, "Rn", "Radon", "Radon", "Radón", "Radon", "رادون", 18, 6, "noble-gas", 222, "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁶"],
+                [87, "Fr", "Francium", "Fransiyum", "Francio", "Francium", "فرانسيوم", 1, 7, "alkali-metal", 223, "[Rn] 7s¹"],
+                [88, "Ra", "Radium", "Radyum", "Radio", "Radium", "راديوم", 2, 7, "alkaline-earth-metal", 226, "[Rn] 7s²"],
+                // Aktinitler (89-103)
+                [89, "Ac", "Actinium", "Aktinyum", "Actinio", "Actinium", "اكتينيوم", 3, 7, "actinide", 227, "[Rn] 6d¹ 7s²"],
+                [90, "Th", "Thorium", "Toryum", "Torio", "Thorium", "ثوريوم", 3, 9, "actinide", 232.04, "[Rn] 6d² 7s²"],
+                [91, "Pa", "Protactinium", "Protaktinyum", "Protactinio", "Protactinium", "بروتكتينيوم", 4, 9, "actinide", 231.04, "[Rn] 5f² 6d¹ 7s²"],
+                [92, "U", "Uranium", "Uranyum", "Uranio", "Uran", "يورانيوم", 5, 9, "actinide", 238.03, "[Rn] 5f³ 6d¹ 7s²"],
+                [93, "Np", "Neptunium", "Neptünyum", "Neptunio", "Neptunium", "نبتونيوم", 6, 9, "actinide", 237, "[Rn] 5f⁴ 6d¹ 7s²"],
+                [94, "Pu", "Plutonium", "Plütonyum", "Plutonio", "Plutonium", "بلوتونيوم", 7, 9, "actinide", 244, "[Rn] 5f⁶ 7s²"],
+                [95, "Am", "Americium", "Amerikyum", "Americio", "Americium", "أمريكيوم", 8, 9, "actinide", 243, "[Rn] 5f⁷ 7s²"],
+                [96, "Cm", "Curium", "Küriyum", "Curio", "Curium", "كوريوم", 9, 9, "actinide", 247, "[Rn] 5f⁷ 6d¹ 7s²"],
+                [97, "Bk", "Berkelium", "Berkelyum", "Berkelio", "Berkelium", "بيركيليوم", 10, 9, "actinide", 247, "[Rn] 5f⁹ 7s²"],
+                [98, "Cf", "Californium", "Kaliforniyum", "Californio", "Californium", "كاليفورنيوم", 11, 9, "actinide", 251, "[Rn] 5f¹⁰ 7s²"],
+                [99, "Es", "Einsteinium", "Aynştaynyum", "Einstenio", "Einsteinium", "أينشتاينيوم", 12, 9, "actinide", 252, "[Rn] 5f¹¹ 7s²"],
+                [100, "Fm", "Fermium", "Fermiyum", "Fermio", "Fermium", "فيرميوم", 13, 9, "actinide", 257, "[Rn] 5f¹² 7s²"],
+                [101, "Md", "Mendelevium", "Mendelevyum", "Mendelevio", "Mendelevium", "مندليفيوم", 14, 9, "actinide", 258, "[Rn] 5f¹³ 7s²"],
+                [102, "No", "Nobelium", "Nobelyum", "Nobelio", "Nobelium", "نوبليوم", 15, 9, "actinide", 259, "[Rn] 5f¹⁴ 7s²"],
+                [103, "Lr", "Lawrencium", "Lavrensiyum", "Lawrencio", "Lawrencium", "لورنسيوم", 16, 9, "actinide", 262, "[Rn] 5f¹⁴ 7s² 7p¹"],
+
+                // Süper ağır elementler - tahmini özelliklere göre kategorize edildi
+                [104, "Rf", "Rutherfordium", "Rutherfordyum", "Rutherfordio", "Rutherfordium", "رذرفورديوم", 4, 7, "transition-metal", 267, "[Rn] 5f¹⁴ 6d² 7s²"],
+                [105, "Db", "Dubnium", "Dubniyum", "Dubnio", "Dubnium", "دوبنيوم", 5, 7, "transition-metal", 268, "[Rn] 5f¹⁴ 6d³ 7s²"],
+                [106, "Sg", "Seaborgium", "Seaborgiyum", "Seaborgio", "Seaborgium", "سيبرغنيوم", 6, 7, "transition-metal", 269, "[Rn] 5f¹⁴ 6d⁴ 7s²"],
+                [107, "Bh", "Bohrium", "Bohriyum", "Bohrio", "Bohrium", "بوهريوم", 7, 7, "transition-metal", 270, "[Rn] 5f¹⁴ 6d⁵ 7s²"],
+                [108, "Hs", "Hassium", "Hassiyum", "Hassio", "Hassium", "هاسيوم", 8, 7, "transition-metal", 269, "[Rn] 5f¹⁴ 6d⁶ 7s²"],
+                [109, "Mt", "Meitnerium", "Meitneriyum", "Meitnerio", "Meitnerium", "مايتنريوم", 9, 7, "transition-metal", 278, "[Rn] 5f¹⁴ 6d⁷ 7s²"],
+                [110, "Ds", "Darmstadtium", "Darmstadtiyum", "Darmstadtio", "Darmstadtium", "دارمشتاديوم", 10, 7, "transition-metal", 281, "[Rn] 5f¹⁴ 6d⁹ 7s¹"],
+                [111, "Rg", "Roentgenium", "Röntgenyum", "Roentgenio", "Roentgenium", "روينتجينيوم", 11, 7, "transition-metal", 282, "[Rn] 5f¹⁴ 6d¹⁰ 7s¹"],
+                [112, "Cn", "Copernicium", "Kopernikyum", "Copernicio", "Copernicium", "كوبرنيسيوم", 12, 7, "transition-metal", 285, "[Rn] 5f¹⁴ 6d¹⁰ 7s²"],
+                [113, "Nh", "Nihonium", "Nihonyum", "Nihonio", "Nihonium", "نيهونيوم", 13, 7, "post-transition-metal", 286, "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p¹"],
+                [114, "Fl", "Flerovium", "Flerovyum", "Flerovio", "Flerovium", "فليروفيوم", 14, 7, "post-transition-metal", 289, "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p²"],
+                [115, "Mc", "Moscovium", "Moskovyum", "Moscovio", "Moscovium", "موسكوفيوم", 15, 7, "post-transition-metal", 290, "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p³"],
+                [116, "Lv", "Livermorium", "Livermoryum", "Livermorio", "Livermorium", "ليفرموريوم", 16, 7, "post-transition-metal", 293, "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁴"],
+                [117, "Ts", "Tennessine", "Tennessin", "Teneso", "Tenness", "تينيسين", 17, 7, "nonmetal", 294, "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁵"],
+                [118, "Og", "Oganesson", "Oganesson", "Oganesón", "Oganesson", "أوغانيسون", 18, 7, "noble-gas", 294, "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶"]
+            ];
+
+            // Element verileri dizisi artık şu indeksleri içeriyor:
+            // [0] Atom Numarası, [1] Sembol, [2] EN Adı, [3] TR Adı, [4] ES Adı, [5] DE Adı, [6] AR Adı
+            // [7] Grup, [8] Periyot, [9] Kategori, [10] Atom Ağırlığı, [11] Elektron Dizilimi
+
+            let currentLang = 'en'; // Varsayılan dil
+
+            // Quiz mesajları ve UI metinleri için çeviriler
+            const messages = {
+                en: {
+                    appTitle: "Periodic Table Quiz",
+                    periodicTableTitle: "Periodic Table",
+                    placeholder: "Enter element name",
+                    submit: "Submit",
+                    reset: "Reset Quiz",
+                    correct: "Correct! Good job!",
+                    incorrect: "Incorrect. Try again!",
+                    already_filled: "This element is already correctly placed.",
+                    enter_element: "Please enter an element name.",
+                    atomicNumber: "Atomic Number",
+                    atomicMass: "Atomic Mass",
+                    electronConfig: "Electron Config",
+                    group: "Group",
+                    period: "Period",
+                    category: "Category",
+                    categoryNames: {
+                        "alkali-metal": "Alkali Metals",
+                        "alkaline-earth-metal": "Alkaline Earth Metals",
+                        "transition-metal": "Transition Metals",
+                        "post-transition-metal": "Post-transition Metals",
+                        "metalloid": "Metalloids",
+                        "nonmetal": "Nonmetals",
+                        "noble-gas": "Noble Gases",
+                        "lanthanide": "Lanthanides",
+                        "actinide": "Actinides"
+                    },
+                    legendTitle: "Category Legend"
+                },
+                tr: {
+                    appTitle: "Periyodik Tablo Quizi",
+                    periodicTableTitle: "Periyodik Tablo",
+                    placeholder: "Element adı girin",
+                    submit: "Gönder",
+                    reset: "Quizi Sıfırla",
+                    correct: "Doğru! Tebrikler!",
+                    incorrect: "Yanlış. Tekrar deneyin!",
+                    already_filled: "Bu element zaten doğru bir şekilde yerleştirildi.",
+                    enter_element: "Lütfen bir element adı girin.",
+                    atomicNumber: "Atom Numarası",
+                    atomicMass: "Atom Ağırlığı",
+                    electronConfig: "Elektron Dizilimi",
+                    group: "Grup",
+                    period: "Periyot",
+                    category: "Kategori",
+                    categoryNames: {
+                        "alkali-metal": "Alkali Metaller",
+                        "alkaline-earth-metal": "Toprak Alkali Metaller",
+                        "transition-metal": "Geçiş Metalleri",
+                        "post-transition-metal": "Geçiş Sonrası Metaller",
+                        "metalloid": "Yarı Metaller",
+                        "nonmetal": "Ametaller",
+                        "noble-gas": "Soy Gazlar",
+                        "lanthanide": "Lantanitler",
+                        "actinide": "Aktinitler"
+                    },
+                    legendTitle: "Kategori Açıklaması"
+                },
+                es: {
+                    appTitle: "Cuestionario de la Tabla Periódica",
+                    periodicTableTitle: "Tabla Periódica",
+                    placeholder: "Introduce el nombre del elemento",
+                    submit: "Enviar",
+                    reset: "Reiniciar Cuestionario",
+                    correct: "¡Correcto! ¡Buen trabajo!",
+                    incorrect: "¡Incorrecto! ¡Inténtalo de nuevo!",
+                    already_filled: "Este elemento ya está correctamente colocado.",
+                    enter_element: "Por favor, introduce un nombre de elemento.",
+                    atomicNumber: "Número Atómico",
+                    atomicMass: "Masa Atómica",
+                    electronConfig: "Config. Electrónica",
+                    group: "Grupo",
+                    period: "Período",
+                    category: "Categoría",
+                    categoryNames: {
+                        "alkali-metal": "Metales Alcalinos",
+                        "alkaline-earth-metal": "Metales Alcalinotérreos",
+                        "transition-metal": "Metales de Transición",
+                        "post-transition-metal": "Metales Post-transición",
+                        "metalloid": "Metaloides",
+                        "nonmetal": "No Metales",
+                        "noble-gas": "Gases Nobles",
+                        "lanthanide": "Lantánidos",
+                        "actinide": "Actínidos"
+                    },
+                    legendTitle: "Leyenda de Categorías"
+                },
+                de: {
+                    appTitle: "Periodensystem-Quiz",
+                    periodicTableTitle: "Periodensystem",
+                    placeholder: "Elementnamen eingeben",
+                    submit: "Senden",
+                    reset: "Quiz zurücksetzen",
+                    correct: "Richtig! Gut gemacht!",
+                    incorrect: "Falsch. Versuche es erneut!",
+                    already_filled: "Dieses Element ist bereits korrekt platziert.",
+                    enter_element: "Bitte geben Sie einen Elementnamen ein.",
+                    atomicNumber: "Ordnungszahl",
+                    atomicMass: "Atommasse",
+                    electronConfig: "Elektronenkonfig.",
+                    group: "Gruppe",
+                    period: "Periode",
+                    category: "Kategorie",
+                    categoryNames: {
+                        "alkali-metal": "Alkalimetalle",
+                        "alkaline-earth-metal": "Erdalkalimetalle",
+                        "transition-metal": "Übergangsmetalle",
+                        "post-transition-metal": "Postübergangsmetalle",
+                        "metalloid": "Halbmetalle",
+                        "nonmetal": "Nichtmetalle",
+                        "noble-gas": "Edelgase",
+                        "lanthanide": "Lanthanoide",
+                        "actinide": "Actinoide"
+                    },
+                    legendTitle: "Kategorie-Legende"
+                },
+                ar: {
+                    appTitle: "اختبار الجدول الدوري",
+                    periodicTableTitle: "الجدول الدوري",
+                    placeholder: "أدخل اسم العنصر",
+                    submit: "إرسال",
+                    reset: "إعادة تعيين الاختبار",
+                    correct: "صحيح! أحسنت!",
+                    incorrect: "غير صحيح. حاول مرة أخرى!",
+                    already_filled: "تم وضع هذا العنصر بالفعل بشكل صحيح.",
+                    enter_element: "الرجاء إدخال اسم العنصر.",
+                    atomicNumber: "العدد الذري",
+                    atomicMass: "الكتلة الذرية",
+                    electronConfig: "التكوين الإلكتروني",
+                    group: "المجموعة",
+                    period: "الفترة",
+                    category: "الفئة",
+                    categoryNames: {
+                        "alkali-metal": "الفلزات القلوية",
+                        "alkaline-earth-metal": "الفلزات القلوية الترابية",
+                        "transition-metal": "الفلزات الانتقالية",
+                        "post-transition-metal": "فلزات ما بعد الانتقال",
+                        "metalloid": "أشباه الفلزات",
+                        "nonmetal": "اللافلزات",
+                        "noble-gas": "الغازات النبيلة",
+                        "lanthanide": "اللانثانيدات",
+                        "actinide": "الأكتينيدات"
+                    },
+                    legendTitle: "مفتاح الفئات"
+                }
+            };
+
+            const filledElements = new Set(); // Stores symbols of correctly placed elements
+
+            // Helper function to get element name by current language
+            function getElementNameByLang(element, lang) {
+                switch (lang) {
+                    case 'en': return element[2];
+                    case 'tr': return element[3];
+                    case 'es': return element[4];
+                    case 'de': return element[5];
+                    case 'ar': return element[6];
+                    default: return element[2]; // Default to English
+                }
+            }
+
+            // Function to update UI elements based on current language
+            function updateUI() {
+                document.querySelector('h1').textContent = messages[currentLang].appTitle;
+                document.querySelector('#periodic-table-section h2').textContent = messages[currentLang].periodicTableTitle;
+                elementInput.placeholder = messages[currentLang].placeholder;
+                submitAnswerBtn.textContent = messages[currentLang].submit;
+                resetQuizBtn.textContent = messages[currentLang].reset;
+                categoryLegend.querySelector('h3').textContent = messages[currentLang].legendTitle;
+
+                // Update main language button
+                currentLangText.textContent = currentLang.toUpperCase();
+                currentLangFlag.className = `fi fi-${getFlagCode(currentLang)} flag-icon`;
+
+                // Update all language option buttons
+                document.querySelectorAll('.language-options button').forEach(button => {
+                    const lang = button.dataset.lang;
+                    if (lang === currentLang) {
+                        button.classList.add('active-option');
+                    } else {
+                        button.classList.remove('active-option');
+                    }
+                });
+            }
+
+            // Helper function to get flag code based on language
+            function getFlagCode(lang) {
+                switch (lang) {
+                    case 'en': return 'us';
+                    case 'tr': return 'tr';
+                    case 'es': return 'es';
+                    case 'de': return 'de';
+                    case 'ar': return 'sa';
+                    default: return 'us';
+                }
+            }
+
+            // Function to generate/re-generate the periodic table grid
+            function generatePeriodicTable() {
+                periodicTableGrid.innerHTML = ''; // Clear existing table content
+
+                // Iterate through all periods and groups to build the grid
+                for (let period = 1; period <= 9; period++) {
+                    for (let group = 1; group <= 18; group++) {
+                        // Adjust element data access for group and period based on new array structure
+                        let element = elements.find(e => e[8] === period && e[7] === group);
+                        let elementCell = document.createElement('div');
+                        elementCell.classList.add('element-cell');
+
+                        // Handle empty cells and placeholder cells for Lanthanides/Actinides
+                        if (
+                            (period === 1 && (group > 2 && group < 18)) ||
+                            (period === 2 && (group > 2 && group < 13)) ||
+                            (period === 3 && (group > 2 && group < 13))
+                        ) {
+                            elementCell.classList.add('empty');
+                        }
+                        else if ((period === 6 && group === 3) || (period === 7 && group === 3)) {
+                            // These are the placeholder cells for Lanthanides/Actinides in the main table
+                            elementCell.classList.remove('empty');
+                            if (element) {
+                                elementCell.dataset.symbol = element[1];
+                                elementCell.dataset.nameEn = element[2].toLowerCase();
+                                elementCell.dataset.nameTr = element[3].toLowerCase();
+                                elementCell.dataset.nameEs = element[4].toLowerCase();
+                                elementCell.dataset.nameDe = element[5].toLowerCase();
+                                elementCell.dataset.nameAr = element[6].toLowerCase();
+                                elementCell.dataset.period = element[8];
+                                elementCell.dataset.group = element[7];
+                                elementCell.dataset.category = element[9];
+                                elementCell.dataset.atomicMass = element[10];
+                                elementCell.dataset.electronConfig = element[11];
+                                // Apply the category color directly
+                                elementCell.classList.add(`category-${element[9]}`);
+                                // Add the placeholder class, but it no longer sets background-color
+                                elementCell.classList.add('lanthanide-actinide-placeholder-cell');
+
+                                // Only display number initially
+                                elementCell.innerHTML = `<span class="element-number">${element[0]}</span>`;
+
+                                // If element is already guessed, display symbol and name
+                                if (filledElements.has(element[1])) {
+                                    elementCell.classList.add('correctly-filled');
+                                    elementCell.innerHTML = `
+                                        <span class="element-number">${element[0]}</span>
+                                        <div class="correctly-guessed-content">
+                                            <div class="guessed-symbol">${element[1]}</div>
+                                            <div class="guessed-name">${getElementNameByLang(element, currentLang)}</div>
+                                        </div>
+                                    `;
+                                }
+                            } else {
+                                elementCell.classList.add('empty');
+                            }
+                        }
+                        // Handle f-block elements (Lanthanides and Actinides) in periods 8 and 9
+                        else if (period >= 8 && period <= 9) {
+                            if (group >= 3 && group <= 16) {
+                                element = elements.find(e => e[8] === period && e[7] === group); // Re-find with correct indices
+                                if (element) {
+                                    elementCell.dataset.symbol = element[1];
+                                    elementCell.dataset.nameEn = element[2].toLowerCase();
+                                    elementCell.dataset.nameTr = element[3].toLowerCase();
+                                    elementCell.dataset.nameEs = element[4].toLowerCase();
+                                    elementCell.dataset.nameDe = element[5].toLowerCase();
+                                    elementCell.dataset.nameAr = element[6].toLowerCase();
+                                    elementCell.dataset.period = element[8];
+                                    elementCell.dataset.group = element[7];
+                                    elementCell.dataset.category = element[9];
+                                    elementCell.dataset.atomicMass = element[10];
+                                    elementCell.dataset.electronConfig = element[11];
+                                    elementCell.classList.add('f-block-element');
+                                    elementCell.classList.add(`category-${element[9]}`);
+
+                                    // Only display number initially
+                                    elementCell.innerHTML = `<span class="element-number">${element[0]}</span>`;
+
+                                    // If element is already guessed, display symbol and name
+                                    if (filledElements.has(element[1])) {
+                                        elementCell.classList.add('correctly-filled');
+                                        elementCell.innerHTML = `
+                                            <span class="element-number">${element[0]}</span>
+                                            <div class="correctly-guessed-content">
+                                                <div class="guessed-symbol">${element[1]}</div>
+                                                <div class="guessed-name">${getElementNameByLang(element, currentLang)}</div>
+                                            </div>
+                                        `;
+                                    }
+                                } else {
+                                    elementCell.classList.add('empty');
+                                }
+                            } else {
+                                elementCell.classList.add('empty');
+                            }
+                        }
+                        // Handle standard elements in the main periodic table
+                        else if (element) {
+                            elementCell.dataset.symbol = element[1];
+                            elementCell.dataset.nameEn = element[2].toLowerCase();
+                            elementCell.dataset.nameTr = element[3].toLowerCase();
+                            elementCell.dataset.nameEs = element[4].toLowerCase();
+                            elementCell.dataset.nameDe = element[5].toLowerCase();
+                            elementCell.dataset.nameAr = element[6].toLowerCase();
+                            elementCell.dataset.period = element[8];
+                            elementCell.dataset.group = element[7];
+                            elementCell.dataset.category = element[9];
+                            elementCell.dataset.atomicMass = element[10];
+                            elementCell.dataset.electronConfig = element[11];
+                            elementCell.classList.add(`category-${element[9]}`);
+
+                            // Only display number initially
+                            elementCell.innerHTML = `<span class="element-number">${element[0]}</span>`;
+
+                            // If the element has been correctly placed by the user, show its symbol and name
+                            if (filledElements.has(element[1])) {
+                                elementCell.classList.add('correctly-filled');
+                                elementCell.innerHTML = `
+                                    <span class="element-number">${element[0]}</span>
+                                    <div class="correctly-guessed-content">
+                                        <div class="guessed-symbol">${element[1]}</div>
+                                        <div class="guessed-name">${getElementNameByLang(element, currentLang)}</div>
+                                    </div>
+                                `;
+                            }
+                        } else {
+                            elementCell.classList.add('empty');
+                        }
+                        periodicTableGrid.appendChild(elementCell);
+                    }
+                }
+            }
+
+            // Function to generate the category legend
+            function generateLegend() {
+                legendItemsContainer.innerHTML = '';
+                // Get unique categories and sort them based on element data structure
+                const uniqueCategories = [...new Set(elements.map(e => e[9]))].sort();
+
+                uniqueCategories.forEach(category => {
+                    const legendItem = document.createElement('div');
+                    legendItem.classList.add('legend-item');
+
+                    const colorBox = document.createElement('div');
+                    colorBox.classList.add('legend-color-box', `category-${category}`);
+
+                    const categoryName = document.createElement('span');
+                    categoryName.textContent = messages[currentLang].categoryNames[category];
+
+                    legendItem.appendChild(colorBox);
+                    legendItem.appendChild(categoryName);
+                    legendItemsContainer.appendChild(legendItem);
+                });
+            }
+
+            // Function to show element details in a modal
+            function showElementDetails(elementData) {
+                // Adjust element data access based on new array structure
+                const atomicNumber = elementData[0];
+                const symbol = elementData[1];
+                const group = elementData[7];
+                const period = elementData[8];
+                const category = elementData[9];
+                const atomicMass = elementData[10];
+                const electronConfig = elementData[11];
+
+                let modal = document.getElementById('element-detail-modal');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.id = 'element-detail-modal';
+                    document.body.appendChild(modal);
+                }
+
+                const nameForDisplay = getElementNameByLang(elementData, currentLang);
+
+                // Helper function to capitalize first letter of each word
+                const capitalizeWords = (str) => {
+                    if (currentLang === 'ar') { // No need to capitalize for Arabic
+                        return str;
+                    }
+                    return str.replace(/-/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                };
+
+                modal.innerHTML = `
+                    <h3>${symbol} - ${nameForDisplay}</h3>
+                    <p><span class="detail-label">${messages[currentLang].atomicNumber}:</span> ${atomicNumber}</p>
+                    <p><span class="detail-label">${messages[currentLang].atomicMass}:</span> ${atomicMass.toFixed(3)}</p>
+                    <p><span class="detail-label">${messages[currentLang].electronConfig}:</span> ${electronConfig}</p>
+                    <p><span class="detail-label">${messages[currentLang].group}:</span> ${group}</p>
+                    <p><span class="detail-label">${messages[currentLang].period}:</span> ${period}</p>
+                    <p><span class="detail-label">${messages[currentLang].category}:</span> ${capitalizeWords(category)}</p>
+                `;
+                modal.classList.add('show');
+            }
+
+            // Event listener for quiz submission
+            submitAnswerBtn.addEventListener('click', () => {
+                const inputName = elementInput.value.trim().toLowerCase();
+                if (!inputName) {
+                    feedbackDiv.textContent = messages[currentLang].enter_element;
+                    feedbackDiv.className = 'feedback';
+                    return;
+                }
+
+                // Search for element ONLY in the current language
+                const foundElement = elements.find(element =>
+                    getElementNameByLang(element, currentLang).toLowerCase() === inputName
+                );
+
+                if (foundElement) {
+                    const symbol = foundElement[1];
+                    if (filledElements.has(symbol)) {
+                        feedbackDiv.textContent = messages[currentLang].already_filled;
+                        feedbackDiv.className = 'feedback';
+                        elementInput.value = '';
+                        return;
+                    }
+
+                    const elementCell = document.querySelector(`.element-cell[data-symbol="${symbol}"]`);
+                    if (elementCell) {
+                        // Update the cell's inner HTML to show symbol and name
+                        elementCell.innerHTML = `
+                            <span class="element-number">${foundElement[0]}</span>
+                            <div class="correctly-guessed-content">
+                                <div class="guessed-symbol">${foundElement[1]}</div>
+                                <div class="guessed-name">${getElementNameByLang(foundElement, currentLang)}</div>
+                            </div>
+                        `;
+
+                        feedbackDiv.textContent = messages[currentLang].correct;
+                        feedbackDiv.className = 'feedback success';
+                        filledElements.add(symbol);
+
+                        showElementDetails(foundElement); // Show element details modal
+                        // Modal will automatically close after 1 second
+                        setTimeout(() => {
+                            const modal = document.getElementById('element-detail-modal');
+                            if (modal) {
+                                modal.classList.remove('show');
+                            }
+                        }, 1000);
+                    }
+                } else {
+                    feedbackDiv.textContent = messages[currentLang].incorrect;
+                    feedbackDiv.className = 'feedback';
+                }
+                elementInput.value = '';
+            });
+
+            // Event listener for Enter key press on the input field
+            elementInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    submitAnswerBtn.click(); // Trigger click event on submit button
+                }
+            });
+
+            // Event listener for resetting the quiz
+            resetQuizBtn.addEventListener('click', () => {
+                filledElements.clear();
+                generatePeriodicTable();
+                feedbackDiv.textContent = '';
+                feedbackDiv.className = 'feedback';
+                elementInput.value = '';
+                elementInput.focus();
+
+                const modal = document.getElementById('element-detail-modal');
+                if (modal) {
+                    modal.classList.remove('show');
+                }
+            });
+
+            // Main language dropdown toggle
+            mainLangToggle.addEventListener('click', (event) => {
+                event.stopPropagation(); // Prevent document click from closing immediately
+                languageOptionsDiv.classList.toggle('show');
+            });
+
+            // Add event listeners to each language option button
+            languageOptionsDiv.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const selectedLang = button.dataset.lang;
+                    if (currentLang !== selectedLang) {
+                        currentLang = selectedLang;
+                        updateUI();
+                        generatePeriodicTable(); // Re-render table to ensure category colors and symbols are correct
+                        generateLegend(); // Re-render legend for language change
+                    }
+                    languageOptionsDiv.classList.remove('show'); // Close menu after selection
+                });
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (event) => {
+                if (!languageOptionsDiv.contains(event.target) && !mainLangToggle.contains(event.target)) {
+                    languageOptionsDiv.classList.remove('show');
+                }
+            });
+
+            // Initial setup when the page loads
+            updateUI();
+            generatePeriodicTable();
+            generateLegend();
+        });
+    </script>
 </body>
 </html>
